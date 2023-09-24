@@ -9,7 +9,7 @@
     "discord.js": "^14.11.0"
   },
   "scripts": {
-    "dev": "nodemon ./src/index.js"
+    "dev": "node ./src/index.js"
   },
   "type": "module",
   "devDependencies": {
