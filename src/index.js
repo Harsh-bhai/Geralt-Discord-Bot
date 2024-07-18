@@ -1,11 +1,12 @@
 import { config } from "dotenv";
-import { Client, GatewayIntentBits, Routes } from "discord.js";
-import { REST } from "@discordjs/rest";
+import { Client, GatewayIntentBits, Routes, REST } from "discord.js";
+import print from "./commands/print.js";
 import types from "./commands/type.js";
 import roleCommand from "./commands/roles.js";
 
-// Load environment variables from the .env <file></file>
+// Load environment variables from the .env file
 config();
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -21,71 +22,36 @@ client.on("ready", () => {
   console.log("Bot is ready");
 });
 
-client.on("interactionCreate", (interaction) => {
-  if (interaction.isChatInputCommand) {
-    // console.log(interaction);
-    interaction.options.get("query") &&
-      interaction.reply({ content: interaction.options.get("query").value });
-    interaction.options.get("here") &&
-      interaction.reply({ content: interaction.options.get("here").value });
-    interaction.options.get("appreciation") &&
-      interaction.reply({
-        content: interaction.options.get("appreciation").value,
-      });
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+
+  const { commandName, options } = interaction;
+
+  if (commandName === "print") {
+    await interaction.reply({ content: options.getString("statement") });
+  } else if (commandName === "type") {
+    await interaction.reply({ content: options.getString("type") });
+  } else if (commandName === "roles") {
+    await interaction.reply({ content: options.getString("roles") });
   }
 });
 
 const main = async () => {
-  const commands = [
-    {
-      name: "appreciation",
-      description: "it will appreciate you",
-      options: [
-        //put options here
-        {
-          name: "appreciation",
-          description: "choose from options",
-          type: 3,
-          required: true,
-          //put choices here
-          choices: [
-            {
-              name: "appreciation english",
-              value: "Great work",
-            },
-            {
-              name: "appreciation hindi",
-              value: "kya baat hai 👏",
-            },
-          ],
-        },
-      ],
-    },
-    {
-      name: "print",
-      description: "it will print the query",
-      options: [
-        //put options here
-        {
-          name: "query",
-          description: "give query here",
-          type: 3,
-          required: true,
-        },
-      ],
-    },
-    types,
-    roleCommand,
-  ];
+  const commands = [print, types, roleCommand];
 
   try {
-    console.log("Started refreshing application ( / ) commands. ");
-    rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, GUILD_ID), {
+    console.log("Started refreshing application ( / ) commands.");
+    await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), {
       body: commands,
     });
-    client.login(process.env.TOKEN);
+    console.log("Successfully reloaded application ( / ) commands.");
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
+
+  client.login(process.env.TOKEN);
 };
+
 main();
+
+
